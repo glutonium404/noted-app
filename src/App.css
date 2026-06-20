@@ -45,10 +45,6 @@
   padding: 20px 16px 32px;
 }
 
-.info-wrapper {
-  align-items: center;
-}
-
 .topbar {
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 18px;
@@ -74,10 +70,6 @@
   border-radius: 18px;
   padding: 16px;
   background: rgba(18, 26, 23, 0.5);
-
-  >div:not(:first-child, :last-child) {
-    margin-block: 1rem;
-  }
 }
 
 .empty-state {
@@ -129,11 +121,6 @@
   flex-shrink: 0;
 }
 
-.title-info-wrapper {
-  align-items: center;
-  justify-content: space-between;
-}
-
 .note-title-text {
   font-family: 'Fraunces', Georgia, serif;
 }
@@ -157,4 +144,24 @@
   .dashboard-panel {
     padding: 14px;
   }
+}
+
+.dashboard-panel {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(18, 26, 23, 0.5);
+
+  >div:not(:first-child, :last-child) {
+    margin-block: 1rem;
+  }
+}
+
+.info-wrapper {
+  align-items: center;
+}
+
+.card-title-wrapper {
+  align-items: center;
+  justify-content: space-between;
 }

@@ -47,7 +47,7 @@ function Dashboard({ user, notes, onLogout, onAdd, onOpenNote, onEditNote, onDel
     <Box className="dashboard-shell">
       <AppBar position="static" elevation={0} color="transparent" className="topbar">
         <Toolbar className="toolbar">
-          <Stack direction="row" spacing={1.5} alignItems="center" className="info-wrapper">
+          <Stack className="info-wrapper" direction="row" spacing={1.5} alignItems="center">
             <Avatar sx={{ bgcolor: 'primary.main', color: '#0a0f0d', fontWeight: 700 }}>
               {user.name.charAt(0).toUpperCase()}
             </Avatar>

@@ -47,6 +47,28 @@ export const generateUniqueUsername = (name, users) => {
   return `${base}_${counter}`
 }
 
+export const PASSWORD_MIN_LENGTH = 8
+
+// Client-side hash so a raw password string never sits in localStorage as
+// plaintext. This is NOT a substitute for proper server-side hashing
+// (bcrypt/argon2 with a per-user salt) — once a real backend exists, it
+// should receive the raw password over HTTPS and do that hashing itself;
+// this hash is only here because everything currently lives in the browser.
+export const hashPassword = async (password) => {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const digest = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+export const stripPasswordHash = (user) => {
+  const publicUser = { ...user }
+  delete publicUser.passwordHash
+  return publicUser
+}
+
 export const formatDate = (value) =>
   new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',

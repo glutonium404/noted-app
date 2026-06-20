@@ -14,6 +14,9 @@ import {
   sanitizeUsername,
   createNoteId,
   mockServerRequest,
+  hashPassword,
+  stripPasswordHash,
+  PASSWORD_MIN_LENGTH,
 } from './lib/noted'
 import './App.css'
 
@@ -61,16 +64,22 @@ function App() {
 
   // --- Auth -----------------------------------------------------------
 
-  const handleLogin = async (rawEmail) => {
+  const handleLogin = async (rawEmail, rawPassword) => {
     const normalizedEmail = rawEmail.trim().toLowerCase()
-    if (!normalizedEmail) {
-      notify('Enter your email to continue.', 'warning')
+    if (!normalizedEmail || !rawPassword) {
+      notify('Enter your email and password to continue.', 'warning')
       return false
     }
 
     const existingUser = users.find((user) => user.email === normalizedEmail)
     if (!existingUser) {
       notify('No account found for that email. Try registering instead.', 'warning')
+      return false
+    }
+
+    const passwordHash = await hashPassword(rawPassword)
+    if (passwordHash !== existingUser.passwordHash) {
+      notify('Incorrect password.', 'error')
       return false
     }
 
@@ -81,17 +90,22 @@ function App() {
     }
 
     setNotes(readStorage(noteStorageKey(existingUser.username), []))
-    setCurrentUser(existingUser)
+    setCurrentUser(stripPasswordHash(existingUser))
     notify(`Welcome back, ${existingUser.name}.`)
     return true
   }
 
-  const handleRegister = async (rawName, rawEmail) => {
+  const handleRegister = async (rawName, rawEmail, rawPassword) => {
     const trimmedName = rawName.trim()
     const normalizedEmail = rawEmail.trim().toLowerCase()
 
-    if (!trimmedName || !normalizedEmail) {
-      notify('Name and email are required to register.', 'warning')
+    if (!trimmedName || !normalizedEmail || !rawPassword) {
+      notify('Name, email, and password are all required to register.', 'warning')
+      return false
+    }
+
+    if (rawPassword.length < PASSWORD_MIN_LENGTH) {
+      notify(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`, 'warning')
       return false
     }
 
@@ -106,12 +120,18 @@ function App() {
     }
 
     const username = generateUniqueUsername(trimmedName, users)
+    const passwordHash = await hashPassword(rawPassword)
 
     const result = await mockServerRequest({
       action: 'register',
       email: normalizedEmail,
       name: trimmedName,
       username,
+      // NOTE: a real backend should receive the raw password over HTTPS and
+      // hash it server-side (bcrypt/argon2 + salt). passwordHash here is a
+      // client-side SHA-256 placeholder since everything currently lives in
+      // localStorage with no server.
+      passwordHash,
     })
 
     if (result.status !== 200) {
@@ -119,11 +139,11 @@ function App() {
       return false
     }
 
-    const newUser = { name: trimmedName, email: normalizedEmail, username }
+    const newUser = { name: trimmedName, email: normalizedEmail, username, passwordHash }
 
     setUsers((previous) => [...previous, newUser])
     setNotes([])
-    setCurrentUser(newUser)
+    setCurrentUser(stripPasswordHash(newUser))
     notify(`Account created. Your username is ${username}.`)
     return true
   }

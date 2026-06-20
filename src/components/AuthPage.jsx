@@ -2,6 +2,8 @@ import { useState } from 'react'
 import {
   Box,
   Button,
+  IconButton,
+  InputAdornment,
   Paper,
   Stack,
   Tab,
@@ -11,32 +13,84 @@ import {
 } from '@mui/material'
 import LoginRounded from '@mui/icons-material/LoginRounded'
 import PersonAddAlt1Rounded from '@mui/icons-material/PersonAddAlt1Rounded'
+import VisibilityRounded from '@mui/icons-material/VisibilityRounded'
+import VisibilityOffRounded from '@mui/icons-material/VisibilityOffRounded'
+import { PASSWORD_MIN_LENGTH } from '../lib/noted'
+
+function PasswordField({ label, value, onChange, autoComplete, helperText, error }) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <TextField
+      required
+      fullWidth
+      label={label}
+      value={value}
+      onChange={onChange}
+      type={visible ? 'text' : 'password'}
+      autoComplete={autoComplete}
+      helperText={helperText}
+      error={error}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              size="small"
+              tabIndex={-1}
+              aria-label={visible ? 'Hide password' : 'Show password'}
+              onClick={() => setVisible((previous) => !previous)}
+            >
+              {visible ? <VisibilityOffRounded fontSize="small" /> : <VisibilityRounded fontSize="small" />}
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+  )
+}
 
 function AuthPage({ onLogin, onRegister }) {
   const [authMode, setAuthMode] = useState(0)
+
   const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+
   const [registerName, setRegisterName] = useState('')
   const [registerEmail, setRegisterEmail] = useState('')
+  const [registerPassword, setRegisterPassword] = useState('')
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('')
+  const [confirmMismatch, setConfirmMismatch] = useState(false)
+
   const [submitting, setSubmitting] = useState(false)
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault()
     setSubmitting(true)
-    const succeeded = await onLogin(loginEmail)
+    const succeeded = await onLogin(loginEmail, loginPassword)
     setSubmitting(false)
     if (succeeded) {
       setLoginEmail('')
+      setLoginPassword('')
     }
   }
 
   const handleRegisterSubmit = async (event) => {
     event.preventDefault()
+
+    if (registerPassword !== registerConfirmPassword) {
+      setConfirmMismatch(true)
+      return
+    }
+    setConfirmMismatch(false)
+
     setSubmitting(true)
-    const succeeded = await onRegister(registerName, registerEmail)
+    const succeeded = await onRegister(registerName, registerEmail, registerPassword)
     setSubmitting(false)
     if (succeeded) {
       setRegisterName('')
       setRegisterEmail('')
+      setRegisterPassword('')
+      setRegisterConfirmPassword('')
     }
   }
 
@@ -55,7 +109,10 @@ function AuthPage({ onLogin, onRegister }) {
 
         <Tabs
           value={authMode}
-          onChange={(_, nextValue) => setAuthMode(nextValue)}
+          onChange={(_, nextValue) => {
+            setAuthMode(nextValue)
+            setConfirmMismatch(false)
+          }}
           variant="fullWidth"
           sx={{ mb: 2.5 }}
         >
@@ -77,6 +134,12 @@ function AuthPage({ onLogin, onRegister }) {
               onChange={(event) => setLoginEmail(event.target.value)}
               type="email"
               autoComplete="email"
+            />
+            <PasswordField
+              label="Password"
+              value={loginPassword}
+              onChange={(event) => setLoginPassword(event.target.value)}
+              autoComplete="current-password"
             />
             <Button
               type="submit"
@@ -105,6 +168,24 @@ function AuthPage({ onLogin, onRegister }) {
               onChange={(event) => setRegisterEmail(event.target.value)}
               type="email"
               autoComplete="email"
+            />
+            <PasswordField
+              label="Password"
+              value={registerPassword}
+              onChange={(event) => setRegisterPassword(event.target.value)}
+              autoComplete="new-password"
+              helperText={`At least ${PASSWORD_MIN_LENGTH} characters.`}
+            />
+            <PasswordField
+              label="Confirm password"
+              value={registerConfirmPassword}
+              onChange={(event) => {
+                setRegisterConfirmPassword(event.target.value)
+                setConfirmMismatch(false)
+              }}
+              autoComplete="new-password"
+              error={confirmMismatch}
+              helperText={confirmMismatch ? "Passwords don't match." : ' '}
             />
             <Button
               type="submit"

@@ -19,7 +19,7 @@ function NoteViewDialog({ note, onClose, onEdit, onDelete }) {
       {note && (
         <>
           <DialogTitle sx={{ pr: 1 }}>
-            <Stack className="title-info-wrapper" direction="row" alignItems="flex-start" justifyContent="space-between">
+            <Stack className="card-title-wrapper" direction="row" alignItems="flex-start" justifyContent="space-between">
               <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
                 <span
                   className="note-spine note-spine-dialog"
